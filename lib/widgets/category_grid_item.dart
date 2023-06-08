@@ -5,7 +5,9 @@ import 'package:meals/screens/meals.dart';
 import 'package:meals/data/dummy_data.dart';
 
 class CategoryGridItem extends StatelessWidget {
-  const CategoryGridItem({super.key, required this.category});
+  final void Function(Meal meal) onToggleFavorite;
+  const CategoryGridItem(
+      {super.key, required this.category, required this.onToggleFavorite});
   final Category category;
 
   @override
@@ -20,16 +22,37 @@ class CategoryGridItem extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MealsScreen(
-              title: category.title,
-              category: category,
-              meals: filterMealsByCategory(),
+        var filteredMeals = filterMealsByCategory();
+        if (filteredMeals.isEmpty) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text(
+                    '${category.title} cuisine has ${filteredMeals.length} meals.'),
+                content: Text(
+                    'There were no ${category.title} cuisine meals found. Please try again later.'),
+                actions: [
+                  TextButton(
+                    child: const Text('Go back.'),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MealsScreen(
+                title: category.title,
+                meals: filterMealsByCategory(),
+                onToggleFavorite: onToggleFavorite,
+              ),
             ),
-          ),
-        );
+          );
+        }
       },
       splashColor: Theme.of(context).primaryColor,
       borderRadius: BorderRadius.circular(16),
